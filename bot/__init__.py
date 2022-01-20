@@ -1,10 +1,10 @@
 import logging
 import socket
 import faulthandler
-import aria2p
-import qbittorrentapi as qba
-import telegram.ext as tg
 
+from telegram.ext import Updater as tgUpdater
+from qbittorrentapi import Client as qbClient
+from aria2p import API as ariaAPI, Client as ariaClient
 from os import remove as osremove, path as ospath, environ
 from requests import get as rget
 from json import loads as jsnloads
@@ -78,16 +78,16 @@ try:
 except KeyError:
     pass
 
-aria2 = aria2p.API(
-    aria2p.Client(
+aria2 = ariaAPI(
+    ariaClient(
         host="http://localhost",
         port=6800,
         secret="",
     )
 )
 
-def get_client() -> qba.TorrentsAPIMixIn:
-    return qba.Client(host="localhost", port=8090)
+def get_client():
+    return qbClient(host="localhost", port=8090)
 
 """
 trackers = subprocess.check_output(["curl -Ns https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt https://ngosang.github.io/trackerslist/trackers_all_http.txt https://newtrackon.com/api/all | awk '$0'"], shell=True).decode('utf-8')
@@ -506,17 +506,10 @@ try:
     if len(SEARCH_PLUGINS) == 0:
         raise KeyError
     SEARCH_PLUGINS = jsnloads(SEARCH_PLUGINS)
-    qbclient = get_client()
-    qb_plugins = qbclient.search_plugins()
-    if qb_plugins:
-        for plugin in qb_plugins:
-            p = plugin['name']
-            qbclient.search_uninstall_plugin(names=p)
-    qbclient.search_install_plugin(SEARCH_PLUGINS)
 except KeyError:
     SEARCH_PLUGINS = None
 
-updater = tg.Updater(token=BOT_TOKEN)
+updater = tgUpdater(token=BOT_TOKEN)
 bot = updater.bot
 dispatcher = updater.dispatcher
 job_queue = updater.job_queue
